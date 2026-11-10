@@ -9,7 +9,7 @@ namespace huellitas_api.Dtos
         public string Nombres { get; set; } = null!;
         public string Apellidos { get; set; } = null!;
         public string Email { get; set; } = null!;
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWriting)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string PasswordHash { get; set; } = null!;
         public string? Telefono { get; set; }
         public int? IntentosFallidos { get; set; }

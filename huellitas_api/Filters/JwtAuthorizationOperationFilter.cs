@@ -1,27 +1,39 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace huellitas_api.Filters
 {
-    public sealed class JwtAuthorizationOperationFilter : IOperationFilter
+    public class JwtAuthorizationOperationFilter : IOperationFilter
     {
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (context.ApiDescription.ActionDescriptor.EndpointMetadata
-                .OfType<IAllowAnonymous>()
-                .Any())
-            {
-                return;
-            }
+            // Validar si el endpoint o controlador requiere [Authorize]
+            var hasAuthorize = context.MethodInfo.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any() ||
+                               context.MethodInfo.DeclaringType.GetCustomAttributes(true).OfType<AuthorizeAttribute>().Any();
 
-            operation.Security ??= [];
+            if (!hasAuthorize) return;
+
+            operation.Responses.TryAdd("401", new OpenApiResponse { Description = "No Autorizado (Falta Token o es inválido)" });
+            operation.Responses.TryAdd("403", new OpenApiResponse { Description = "Prohibido (No tienes los permisos requeridos)" });
+
+            // Inicializar los requisitos de seguridad si están vacíos
+            operation.Security ??= new List<OpenApiSecurityRequirement>();
+
+            var securityScheme = new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            };
+
             operation.Security.Add(new OpenApiSecurityRequirement
             {
-                [new OpenApiSecuritySchemeReference(
-                    JwtBearerDefaults.AuthenticationScheme,
-                    context.Document)] = []
+                [securityScheme] = new List<string>()
             });
         }
     }
