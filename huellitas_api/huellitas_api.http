@@ -1,0 +1,28 @@
+@huellitas_api_HostAddress = http://localhost:5189
+@accessToken = reemplaza-por-el-JWT-recibido-en-el-login
+@refreshToken = reemplaza-por-el-refresh-token-recibido-en-el-login
+
+### Iniciar sesión
+POST {{huellitas_api_HostAddress}}/api/Auth/Login
+Content-Type: application/json
+
+{
+  "email": "usuario@ejemplo.com",
+  "password": "contraseña"
+}
+
+### Renovar tokens (el refresh token anterior queda invalidado)
+POST {{huellitas_api_HostAddress}}/api/Auth/Refresh
+Content-Type: application/json
+
+{
+  "jwtToken": "{{accessToken}}",
+  "refreshToken": "{{refreshToken}}"
+}
+
+### Endpoint protegido de ejemplo
+GET {{huellitas_api_HostAddress}}/api/Usuarios
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+###
